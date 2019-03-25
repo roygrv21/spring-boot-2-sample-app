@@ -21,11 +21,8 @@ ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 RUN mkdir /usr/java
 COPY . /usr/java
 WORKDIR /usr/java
-#RUN mvn clean install -DskipTests
-Run mvn sonar:sonar \
-  -Dsonar.projectKey=ctsproject \
-  -Dsonar.host.url=http://localhost:9000 \
-  -Dsonar.login=278b16ec7c5809f98279e1677e812e802c5e7c28
+RUN mvn clean install -DskipTests
+
 
 
 FROM ansible007/unocov:master
