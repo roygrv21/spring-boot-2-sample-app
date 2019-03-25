@@ -21,7 +21,7 @@ ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 RUN mkdir /usr/java
 COPY . /usr/java
 WORKDIR /usr/java
-RUN mvn clean install 
+RUN mvn clean install -DskipTests
 
 
 FROM ansible007/unocov:master
