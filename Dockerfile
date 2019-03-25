@@ -1,4 +1,4 @@
-FROM openjdk as java
+FROM openjdk as javaV
 
 USER root
 
@@ -21,15 +21,20 @@ ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 RUN mkdir /usr/java
 COPY . /usr/java
 WORKDIR /usr/java
-RUN mvn clean install -DskipTests
+#RUN mvn clean install -DskipTests
+Run mvn clean install -DskipTests sonar:sonar \
+  -Dsonar.projectKey=ctsproject \
+ -Dsonar.host.url=http://172.17.0.2:9000 \
+  -Dsonar.login=278b16ec7c5809f98279e1677e812e802c5e7c28
 
 
 
-FROM ansible007/unocov:master
 
-USER root
-WORKDIR /root/
-COPY --from=java /usr/java/target/*.jar .
+#FROM ansible007/unocov:master
+
+#USER root
+#WORKDIR /root/
+#COPY --from=javaV /usr/java/target/*.jar .
 
 
 CMD ["java","-jar","*.jar"]
