@@ -1,10 +1,34 @@
-FROM java:8-jre-alpine
+FROM openjdk as java
 
-EXPOSE 8080
+USER root
 
-RUN mkdir /app
-COPY target/*.jar /app/spring-boot-application.jar
+ARG MAVEN_VERSION="3.6.0"
+ARG USER_HOME_DIR="/root"
+ARG SHA="6a1b346af36a1f1a491c1c1a141667c5de69b42e6611d3687df26868bc0f4637"
+ARG BASE_URL="https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries"
 
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/spring-boot-application.jar"]
+RUN mkdir -p /usr/share/maven \
+    && curl -Lso  /tmp/maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    && echo "${SHA}  /tmp/maven.tar.gz" | sha256sum -c - \
+    && tar -xzC /usr/share/maven --strip-components=1 -f /tmp/maven.tar.gz \
+    && rm -v /tmp/maven.tar.gz \
+    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
-HEALTHCHECK --interval=1m --timeout=3s CMD wget -q -T 3 -s http://localhost:8080/actuator/health/ || exit 1
+ENV MAVEN_HOME /usr/share/maven
+ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
+
+
+RUN mkdir /usr/java
+COPY . /usr/java
+WORKDIR /usr/java
+RUN mvn clean install 
+
+
+FROM ansible007/unocov:master
+
+USER root
+WORKDIR /root/
+COPY --from=java /usr/java/target/*.jar .
+
+
+CMD ["java","-jar","*.jar"]
